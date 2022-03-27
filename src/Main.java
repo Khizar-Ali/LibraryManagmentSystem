@@ -1,5 +1,8 @@
-import javax.swing.plaf.nimbus.State;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.sql.*;
+import java.util.Date;
 import java.util.Scanner;
 
 public class Main {
@@ -8,6 +11,7 @@ public class Main {
         Scanner scan = new Scanner(System.in);
         Connection connection = null;
         Statement statement = null;
+        ResultSet resultSet;
 
         try {
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/jdbc", "root", "root");
@@ -25,42 +29,74 @@ public class Main {
 
         switch(opt){
             case 1:
-                ResultSet resultSet = statement.executeQuery("select * from books");
+                resultSet = statement.executeQuery("select * from books");
                 while(resultSet.next()){
-                    System.out.println(resultSet.getString("ISBN"));
-                    System.out.println(resultSet.getString("Title"));
-                    System.out.println(resultSet.getString("Author"));
+                    System.out.println(resultSet.getString("bookISBN"));
+                    System.out.println(resultSet.getString("bookTitle"));
+                    System.out.println(resultSet.getString("bookAuthor"));
                     System.out.println(resultSet.getString("bookQuantity"));
                     System.out.println();
                 }
                 break;
+
             case 2:
-                ResultSet resultset = statement.executeQuery("select * from students");
-                while(resultset.next()){
-                    System.out.println(resultset.getString("stdName"));
-                    System.out.println(resultset.getInt("idStudents"));
-                    System.out.println(resultset.getString("ISBN"));
-                    System.out.println(resultset.getString("issueDate"));
+                resultSet = statement.executeQuery("select * from students");
+                while(resultSet.next()){
+                    System.out.println(resultSet.getInt("studentId"));
+                    System.out.println(resultSet.getString("studentName"));
+                    System.out.println(resultSet.getString("studentAddress"));
                     System.out.println();
                 }
                 break;
+
             case 3:
-                System.out.println("Input Roll No");
-                int rollNo = scan.nextInt();
-                //System.out.println();
-                System.out.println("Input Name");
-                String stdName = scan.next();
-                //System.out.println();
-                System.out.println("Input ISBN");
-                String ISBN = scan.next();
-                //System.out.println();
-                System.out.println("Input Issue Date");
-                String issueDate = scan.next();
+                LocalDate currentDate = LocalDate.now();
+                System.out.println(currentDate);
+                LocalDate returnDate = currentDate.plusDays(10);
+                System.out.println(returnDate);
 
-                Students student = new Students(stdName,rollNo,ISBN,issueDate);
+                System.out.println("Enter Student ID: ");
+                int stdId = scan.nextInt();
+                System.out.println("Enter Book ISBN: ");
+                String bookIsbn = scan.next();
 
-                student.storeStudents(connection);
+                int issuedId = 1;
+                resultSet = statement.executeQuery("SELECT * FROM issuedbooks ORDER BY idIssuedBooks DESC LIMIT 1");
+                while(resultSet.next()) {
+                    //System.out.println(resultSet.getInt("idIssuedBooks"));
+                    issuedId = resultSet.getInt("idIssuedBooks");
+                }
+                issuedId++;
+
+                try {
+                    statement = connection.createStatement();
+                    String sql = "INSERT INTO issuedbooks VALUES ("+"'"+issuedId+"'"+", "+"'"+stdId+"'"+", "+"'"+bookIsbn+"'"+", "+"'"+currentDate+"'"+", "+"'"+returnDate+"'" +")";
+                    statement.executeUpdate(sql);
+                } catch (SQLException e){
+                    e.printStackTrace();
+                }
+
+                resultSet = statement.executeQuery ("SELECT * FROM books");
+                while (resultSet.next ()){
+                    String a = resultSet.getString ("bookISBN");
+                    int Quan = resultSet.getInt ("bookQuantity");
+                    if (a.equalsIgnoreCase (bookIsbn)){
+                        if (Quan>0){
+                            Quan = Quan - 1;
+                            String sql = "UPDATE books SET bookQuantity = "+"'"+Quan+"' WHERE BookISBN ="+"'"+bookIsbn+"'"+";";
+                            statement.executeUpdate (sql);
+                            //System.out.println ("\nYou successfully issue the book with Return Date: "+returnDate);
+                            System.out.println("It Worked");
+                            break;
+                        }
+                        else {
+                            System.out.println ("This book is not available yet.");
+                            break;
+                        }
+                    }
+                }
                 break;
+
             case 4:
                 System.out.println("Input ISBN Number:");
                 String bookISBN = scan.next();

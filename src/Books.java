@@ -3,15 +3,15 @@ import java.sql.Connection;
 import java.sql.Statement;
 
 public class Books {
+    private String ISBN;
     private String Title;
     private String author;
-    private String ISBN;
     private int bookQuantity;
 
-    public Books(String Title, String author, String ISBN, int bookQuantity){
+    public Books(String ISBN, String Title, String author, int bookQuantity){
+        this.ISBN = ISBN;
         this.Title = Title;
         this.author = author;
-        this.ISBN = ISBN;
         this.bookQuantity = bookQuantity;
     }
 
@@ -52,9 +52,9 @@ public class Books {
     @Override
     public String toString() {
         return "Books{" +
-                "Title='" + Title + '\'' +
+                "ISBN='" + ISBN + '\'' +
+                ", Title='" + Title + '\'' +
                 ", author='" + author + '\'' +
-                ", ISBN='" + ISBN + '\'' +
                 ", bookQuantity=" + bookQuantity +
                 '}';
     }
@@ -69,4 +69,5 @@ public class Books {
             e.printStackTrace ();
         }
     }
+
 }
